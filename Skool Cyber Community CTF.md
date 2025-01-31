@@ -88,7 +88,7 @@ Using the first query, we already determined that the attacker created the **"ch
 Name one of the **files likely stolen** by the attacker while logged into the new account.
 
 
-To understand this I was looking if there are any sensitive data that could be valuable to the attacker on the suspected device and I found out that the newly created account viewed sensitive files regarding CRISPR Research.
+To understand this I was looking if there is any sensitive data that could be valuable to the attacker on the suspected device and I found out that the newly created account viewed sensitive files regarding CRISPR Research.
 
 
 ### **Query Used:**
