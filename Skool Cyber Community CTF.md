@@ -1,5 +1,8 @@
 # Cyber Range APT Investigation Report
 
+![Screenshot 2025-01-30 195201](https://github.com/user-attachments/assets/098902db-c93d-488a-963d-52d82c55633d)
+
+
 ## 1st Task: Identify the Compromised Host
 
 ### **Task:**
@@ -16,6 +19,10 @@ DeviceEvents
 | where ActionType contains "UserAccountCreated" 
 | project Timestamp, DeviceName, ActionType, AccountName, InitiatingProcessAccountName
 ```
+
+
+![First Query](https://github.com/user-attachments/assets/aea59d3a-b51b-4bd7-8d0f-54d9ec26eaff)
+
 
 ### **Findings:**
 As shown in the picture above, I found that the compromised host was **"corpnet-1-ny"**, where an account named **"chadwick.s"** was created by a user **"chadwicks"**, which appeared suspicious.
@@ -35,8 +42,15 @@ DeviceLogonEvents
 | project Timestamp, DeviceName, AccountName, RemoteIP
 ```
 
+![Task2](https://github.com/user-attachments/assets/e0369087-716c-423e-ab4e-b978e5bcfc90)
+
+
 ### **Findings:**
 The newly created user **"chadwick.s"** logged in using the public IP **102.37.140.95**, which is geolocated in **South Africa**, one of the known regions where "Jackal Spear" operates.
+
+
+![Task2 1](https://github.com/user-attachments/assets/463dc4be-e927-42f5-953d-b9477970b245)
+
 
 ---
 
@@ -54,7 +68,7 @@ DeviceLogonEvents
 ```
 
 ### **Findings:**
-This query helped count the number of failed login attempts from the attacker's IP before a successful login.
+This query helped count the number of failed login attempts from the attacker's IP before a successful login which is 14.
 
 ---
 
@@ -73,6 +87,10 @@ Using the first query, we already determined that the attacker created the **"ch
 ### **Task:**
 Name one of the **files likely stolen** by the attacker while logged into the new account.
 
+
+To understand this I was looking if there are any sensitive data that could be valuable to the attacker on the suspected device and I found out that the newly created account viewed sensitive files regarding CRISPR Research.
+
+
 ### **Query Used:**
 ```kql
 DeviceEvents
@@ -81,13 +99,19 @@ DeviceEvents
 | where ActionType contains "SensitiveFileRead"
 ```
 
+![Task 5](https://github.com/user-attachments/assets/596b5ba4-694c-47b9-8a63-f4826c899d35)
+
+
 Upon further investigation:
 ```kql
 DeviceFileEvents
 | where DeviceName contains "corpnet-1-ny"
 | where InitiatingProcessAccountName contains "chadwick.s"
 | where FileName has_any (".zip", "pdf")
+| project Timestamp, DeviceName, ActionType, FileName, FolderPath, InitiatingProcessAccountName, InitiatingProcessFileName, InitiatingProcessCommandLine
 ```
+![image](https://github.com/user-attachments/assets/b899c6e8-7bcf-46a6-8f95-c0082ddf3cf2)
+
 
 ### **Findings:**
 The newly created account **"chadwick.s"** accessed sensitive files related to **CRISPR Research**. The user created a **zip file** named:
@@ -102,20 +126,9 @@ The answer to this task was **any of the sensitive files** contained in the zip 
 
 ## 🏆 **Final Flag & CTF Placement**
 
-The final flag obtained:  
+The flag obtained:  
 `f6952d6eef555ddd87aca66e56b91530222d6e318414816f3ba7cf5bf694bf0f`
 
 Placed **2nd in the CTF Competition**. 🎉
 
----
 
-### **Summary of Key Findings:**
-| Task | Finding |
-|------|---------|
-| **Compromised Host** | `corpnet-1-ny` |
-| **Attacker's IP** | `102.37.140.95` |
-| **Login Attempts Before Success** | Counted via query |
-| **Created Account** | `chadwick.s` |
-| **Stolen File** | `gene_editing_papers.zip` |
-
-This report documents the **attack chain, investigation process, and key evidence** gathered to complete the CTF tasks. 🚀
