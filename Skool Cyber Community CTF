@@ -1,0 +1,66 @@
+
+
+
+1st Task
+Your first task is to discover and submit the name of the host within the Cyber Range that was compromised by the APT.
+
+Based on the given information we know that the APT "Jackal Spear" originates from South Africa and is occasionally operating in Egypt. They are using spear-phishing campaigns and credential stuffing attacks. We also know that when they compromise an account they establish persistence by creating an account with a similar username.
+
+First I wanted to research and understand "credential stuffing" using MitreATT&CK Framework to research different TTP used in this type of attacks. Since the information given states that the APT modus operandi is to create an account with a similar username I decided to look for the compromised hostname by finding newly created accounts where the name is similar with existing accounts.
+
+DeviceEvents
+| where ActionType contains "UserAccountCreated" 
+| project Timestamp, DeviceName, ActionType, AccountName, InitiatingProcessAccountName
+
+
+As shown in the picture above, I found that the compromised host "corpnet-1-ny" had an account created named "chadwick.s" and the username that created the account was named "chadwicks" which I found to be suspicious.
+
+
+2nd Task
+What is the public IP address of the attacker?
+
+Next, I queried the DeviceLogonEvents and found that the newly created user, "chadwick.s" has logged in with the following Public IP Address: 102.37.140.95, which is geolocated in South Africa, one of the countries that "Jackal Spear" operates from. 
+
+DeviceLogonEvents
+| where DeviceName contains "corpnet-1-ny"
+| where AccountName contains "chadwick.s"
+| project Timestamp, DeviceName, AccountName, RemoteIP
+
+3rd Task
+
+How many login attempts did it take before the attacker successfully logged into the compromised machine?
+
+I used the following query to answer the question.
+DeviceLogonEvents
+| where RemoteIP contains "102.37.140.95"
+| where ActionType contains "LogonFailed"
+| count
+
+4th Task
+What account did the attacker create on the local machine?
+
+We have already found the account that was created using the first query which was "chadwick.s"
+
+5th Task
+
+Name one of the files that was likely stolen by the attacker while logged into the new account?
+
+To understand this I was looking if there are any sensitive data that could be valuable to the attacker on the suspected device and I found out that the newly created account viewed sensitive files regarding CRISPR Research.
+
+DeviceEvents
+| where DeviceName contains "corpnet-1-ny"
+| where InitiatingProcessAccountName contains "chadwick.s"
+| where ActionType contains "SensitiveFileRead"
+
+When quering the DeviceFileEvents we can observe that the user "chadwick.s" created a new file gene_editing_papers.zip in the C:\Users\chadwicks\Documents\CRISPR Research\gene_editing_papers.zip path containing the sensitive documents.
+
+DeviceFileEvents
+| where DeviceName contains "corpnet-1-ny"
+| where InitiatingProcessAccountName contains "chadwick.s"
+| where FileName has_any (".zip", "pdf") 
+
+Furthermore when quering the DeviceProcessEvents the user has downloaded and installed 7zip.exe and OneDrive.exe which were likely used to archive and exfiltrate the data.
+
+The answer to this task is any of the Sensitive Files that the user has opened that are contained within the zip file.
+
+This has been the last task and got the flag f6952d6eef555ddd87aca66e56b91530222d6e318414816f3ba7cf5bf694bf0f and placed 2nd in the CTF competition.
